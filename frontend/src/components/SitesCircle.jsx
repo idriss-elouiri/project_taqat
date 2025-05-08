@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const SitesCircle = ({ onSelectSite }) => {
     const [mounted, setMounted] = useState(false);
@@ -7,14 +7,13 @@ const SitesCircle = ({ onSelectSite }) => {
         setMounted(true);
     }, []);
 
-    if (!mounted) return null; // لا تعرض أي شيء على الخادم
+    if (!mounted) return null;
 
     const sites = [
         { id: 1, name: "أرزو" },
-        { id: 2, name: "السفير" },
-        { id: 3, name: "م. أوس" },
-        { id: 4, name: "الخاص" },
-        { id: 5, name: "م. حسين" },
+        { id: 2, name: "م. أوس" },
+        { id: 3, name: "الخاص" },
+        { id: 4, name: "م. حسين" },
     ];
 
     return (
