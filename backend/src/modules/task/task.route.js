@@ -1,25 +1,48 @@
 import express from "express";
-import * as taskController from "./task.controller.js";
-import { verifyToken } from "../../utils/verifyUser.js";
+import Section from "../task/task.model.js"
 
 const router = express.Router();
 
-// مهام موقع معين
-router
-  .route("/:siteId/tasks")
-  .post(verifyToken, taskController.createTask)
-  .get(verifyToken, taskController.getSiteTasks);
+// نقطة النهاية الموحدة للحفظ والتحديث
+router.post("/:mainSite/:subSite", async (req, res) => {
+    const { mainSite, subSite } = req.params;
+    const { employees, tasks, remainingWork } = req.body;
 
-// مهمة مفردة
-router
-  .route("/:siteId/tasks/:taskId")
-  .get(verifyToken, taskController.getTask)
-  .put(verifyToken, taskController.updateTask)
-  .delete(verifyToken, taskController.deleteTask);
+    try {
+        await Section.findOneAndUpdate(
+            { mainSite, subSite },
+            {
+                mainSite,
+                subSite,
+                employees,
+                tasks,
+                remainingWork
+            },
+            { upsert: true, new: true }
+        );
 
-// تبديل حالة الإكمال للمهمة
-router
-  .route("/:siteId/tasks/:taskId/toggle")
-  .put(verifyToken, taskController.toggleTaskCompletion);
+        res.status(200).json({ message: 'تم الحفظ بنجاح' });
+    } catch (error) {
+        console.error('Error saving data:', error);
+        res.status(500).json({ error: 'فشل في الحفظ', details: error.message });
+    }
+});
+
+// جلب بيانات الموقع الفرعي
+router.get("/:mainSite/:subSite", async (req, res) => {
+    const { mainSite, subSite } = req.params;
+
+    try {
+        const section = await Section.findOne({ mainSite, subSite });
+        if (section) {
+            res.status(200).json(section);
+        } else {
+            res.status(404).json({ message: "لم يتم العثور على الفقرات" });
+        }
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).json({ error: "فشل في الجلب", details: error.message });
+    }
+});
 
 export default router;

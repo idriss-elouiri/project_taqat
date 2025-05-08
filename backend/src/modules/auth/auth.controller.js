@@ -4,7 +4,7 @@ import { errorHandler } from "../../utils/error.js";
 import jwt from "jsonwebtoken";
 
 export const registerHandler = async (req, res, next) => {
-    const {username, email, password } = req.body;
+    const { username, email, password } = req.body;
     const hashedPassword = bcryptjs.hashSync(password, 10);
 
     const newAdmin = new Admin({
@@ -22,10 +22,10 @@ export const registerHandler = async (req, res, next) => {
 };
 
 export const loginHandler = async (req, res, next) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     try {
-        const validAdmin = await Admin.findOne({ email });
+        const validAdmin = await Admin.findOne({ username })
         if (!validAdmin) {
             return next(errorHandler(404, "Account admin not found"));
         }
@@ -44,11 +44,9 @@ export const loginHandler = async (req, res, next) => {
 
         return res
             .status(200)
-            .cookie("access_token", token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "None",
-            })
+            .cookie("access_token", token
+
+            )
             .json(rest);
     } catch (error) {
         next(error);

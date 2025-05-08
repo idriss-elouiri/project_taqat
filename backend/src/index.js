@@ -2,9 +2,10 @@ import express from "express";
 import cors from "cors";
 import { connectDb } from "./config/db.js";
 import authAdminRouter from "./modules/auth/auth.route.js";
-import sitesRouter from "./modules/site/site.route.js";
-import tasksRouter from "./modules/task/task.route.js";
+import sectionRoutes from "./modules/task/task.route.js"
+
 import dotenv from "dotenv";
+
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -31,9 +32,8 @@ app.get('/', (req, res) => {
 })
 // Routes
 app.use("/api/auth", authAdminRouter);
-app.use('/api/sites', sitesRouter);
-app.use('/api/tasks', tasksRouter);
-// Health check endpoint
+app.use("/api/sections", sectionRoutes);
+
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "OK" });
 });
@@ -61,9 +61,8 @@ app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(statusCode).json({
-      success: false,
-      statusCode,
-      message,
+        success: false,
+        statusCode,
+        message,
     });
-  });
-  
+});

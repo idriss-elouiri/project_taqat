@@ -1,13 +1,20 @@
 import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema({
-  description: { type: String, required: true },
-  completed: { type: Boolean, default: false },
-  site: { type: mongoose.Schema.Types.ObjectId, ref: 'Site', required: true },
-  subsite: { type: mongoose.Schema.Types.ObjectId, required: true },
-  createdAt: { type: Date, default: Date.now }
+  content: String,
 });
 
-const Task = mongoose.model("Task", taskSchema);
+const sectionSchema = new mongoose.Schema(
+  {
+    mainSite: { type: String, required: true },
+    subSite: { type: String, required: true },
+    employees: [{ name: String }],
+    tasks: [taskSchema],
+    remainingWork: [taskSchema],
+  },
+  { timestamps: true }
+);
 
-export default Task;
+const Section = mongoose.model("Section", sectionSchema);
+
+export default Section;
