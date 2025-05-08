@@ -2,9 +2,9 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const SectionPage = () => {
-    const [employees, setEmployees] = useState([{ name: "" }]);
-    const [tasks, setTasks] = useState([{ content: "" }]);
-    const [remaining, setRemaining] = useState([{ content: "" }]);
+    const [employees, setEmployees] = useState([{ name: "", date: new Date() }]);
+    const [tasks, setTasks] = useState([{ content: "", date: new Date() }]);
+    const [remaining, setRemaining] = useState([{ content: "", date: new Date() }]);
     const { mainSite, subSite } = useParams();
     const navigate = useNavigate();
     const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -20,9 +20,9 @@ const SectionPage = () => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            setEmployees(data.employees?.length ? data.employees : [{ name: "" }]);
-            setTasks(data.tasks?.length ? data.tasks : [{ content: "" }]);
-            setRemaining(data.remainingWork?.length ? data.remainingWork : [{ content: "" }]);
+            setEmployees(data.employees?.length ? data.employees : [{ name: "", date: new Date() }]);
+            setTasks(data.tasks?.length ? data.tasks : [{ content: "", date: new Date() }]);
+            setRemaining(data.remainingWork?.length ? data.remainingWork : [{ content: "", date: new Date() }]);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -57,32 +57,13 @@ const SectionPage = () => {
         }
     };
 
-    const handleExportExcel = async () => {
-        try {
-            const response = await fetch(`${API_URL}/api/sections/${mainSite}/${subSite}/export-excel`);
-            if (!response.ok) throw new Error('فشل في تحميل ملف Excel');
-            
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `${mainSite}-${subSite}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-        } catch (error) {
-            alert('حدث خطأ أثناء التصدير');
-            console.error(error);
-        }
-    };
-
     const addRow = (type) => {
         if (type === 'employees') {
-            setEmployees([...employees, { name: "" }]);
+            setEmployees([...employees, { name: "", date: new Date() }]);
         } else if (type === 'tasks') {
-            setTasks([...tasks, { content: "" }]);
+            setTasks([...tasks, { content: "", date: new Date() }]);
         } else {
-            setRemaining([...remaining, { content: "" }]);
+            setRemaining([...remaining, { content: "", date: new Date() }]);
         }
     };
 
@@ -112,10 +93,15 @@ const SectionPage = () => {
         }
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ar-EG');
+    };
+
     return (
-        <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+        <div className="p-6 max-w-6xl mx-auto bg-white rounded-xl shadow-md">
             <h2 className="text-2xl font-bold mb-6 text-center">
-                {subSite} - {mainSite}
+                {subSite} - {mainSite} - تعديل البيانات
             </h2>
 
             {/* جدول الموظفين */}
@@ -135,6 +121,7 @@ const SectionPage = () => {
                             <tr className="bg-gray-100">
                                 <th className="border p-2">#</th>
                                 <th className="border p-2">اسم الموظف</th>
+                                <th className="border p-2">تاريخ الإضافة</th>
                                 <th className="border p-2">إجراءات</th>
                             </tr>
                         </thead>
@@ -149,6 +136,9 @@ const SectionPage = () => {
                                             value={emp.name}
                                             onChange={(e) => handleChange('employees', index, 'name', e.target.value)}
                                         />
+                                    </td>
+                                    <td className="border p-2 text-center">
+                                        {formatDate(emp.date)}
                                     </td>
                                     <td className="border p-2 text-center">
                                         <button
@@ -182,6 +172,7 @@ const SectionPage = () => {
                             <tr className="bg-gray-100">
                                 <th className="border p-2">#</th>
                                 <th className="border p-2">المهمة</th>
+                                <th className="border p-2">تاريخ الإضافة</th>
                                 <th className="border p-2">إجراءات</th>
                             </tr>
                         </thead>
@@ -196,6 +187,9 @@ const SectionPage = () => {
                                             value={task.content}
                                             onChange={(e) => handleChange('tasks', index, 'content', e.target.value)}
                                         />
+                                    </td>
+                                    <td className="border p-2 text-center">
+                                        {formatDate(task.date)}
                                     </td>
                                     <td className="border p-2 text-center">
                                         <button
@@ -220,7 +214,7 @@ const SectionPage = () => {
                         onClick={() => addRow('remaining')}
                         className="bg-yellow-500 text-white px-4 py-2 rounded"
                     >
-                        إضافة مهمة متبقية
+                        إضافة عمل متبقي
                     </button>
                 </div>
                 <div className="overflow-x-auto">
@@ -229,6 +223,7 @@ const SectionPage = () => {
                             <tr className="bg-gray-100">
                                 <th className="border p-2">#</th>
                                 <th className="border p-2">المهمة المتبقية</th>
+                                <th className="border p-2">تاريخ الإضافة</th>
                                 <th className="border p-2">إجراءات</th>
                             </tr>
                         </thead>
@@ -245,6 +240,9 @@ const SectionPage = () => {
                                         />
                                     </td>
                                     <td className="border p-2 text-center">
+                                        {formatDate(item.date)}
+                                    </td>
+                                    <td className="border p-2 text-center">
                                         <button
                                             onClick={() => removeRow('remaining', index)}
                                             className="text-red-500 hover:text-red-700"
@@ -259,8 +257,8 @@ const SectionPage = () => {
                 </div>
             </div>
 
-            {/* أزرار الحفظ والتصدير */}
-            <div className="flex gap-4 mt-6">
+            {/* أزرار الحفظ والعودة */}
+            <div className="flex gap-4">
                 <button
                     className="flex-1 bg-purple-600 text-white py-3 rounded font-bold"
                     onClick={handleSave}
@@ -268,10 +266,10 @@ const SectionPage = () => {
                     حفظ البيانات
                 </button>
                 <button
-                    className="flex-1 bg-green-700 text-white py-3 rounded font-bold"
-                    onClick={handleExportExcel}
+                    className="flex-1 bg-gray-600 text-white py-3 rounded font-bold"
+                    onClick={() => navigate('/')}
                 >
-                    تصدير إلى Excel
+                    العودة للرئيسية
                 </button>
             </div>
         </div>

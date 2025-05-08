@@ -4,23 +4,37 @@ import ExcelJS from "exceljs";
 
 const router = express.Router();
 
+// في ملف section.routes.js
 router.post("/:mainSite/:subSite", async (req, res) => {
     const { mainSite, subSite } = req.params;
-    const { employees, tasks, remainingWork } = req.body;
+    let { employees, tasks, remainingWork } = req.body;
+    
+    // إضافة التاريخ إذا لم يكن موجوداً
+    const now = new Date();
+    employees = employees.map(emp => ({
+        name: emp.name,
+        date: emp.date || now
+    }));
+    
+    tasks = tasks.map(task => ({
+        content: task.content,
+        date: task.date || now
+    }));
+    
+    remainingWork = remainingWork.map(item => ({
+        content: item.content,
+        date: item.date || now
+    }));
 
     try {
-        const filteredEmployees = employees.filter(emp => emp.name?.trim());
-        const filteredTasks = tasks.filter(task => task.content?.trim());
-        const filteredRemaining = remainingWork.filter(item => item.content?.trim());
-
         await Section.findOneAndUpdate(
             { mainSite, subSite },
             { 
                 mainSite, 
                 subSite, 
-                employees: filteredEmployees, 
-                tasks: filteredTasks, 
-                remainingWork: filteredRemaining 
+                employees, 
+                tasks, 
+                remainingWork 
             },
             { upsert: true, new: true }
         );
@@ -31,7 +45,6 @@ router.post("/:mainSite/:subSite", async (req, res) => {
         res.status(500).json({ error: 'فشل في الحفظ', details: error.message });
     }
 });
-
 router.get("/:mainSite/:subSite/export-excel", async (req, res) => {
     const { mainSite, subSite } = req.params;
 
@@ -77,8 +90,8 @@ router.get("/:mainSite/:subSite/export-excel", async (req, res) => {
         // ضبط عرض الأعمدة تلقائياً
         worksheet.columns.forEach(column => {
             column.width = Math.max(
-                10, 
-                column.values.reduce((max, value) => 
+                10,
+                column.values.reduce((max, value) =>
                     Math.max(max, value ? value.toString().length : 0), 0)
             ) + 2;
         });
@@ -95,7 +108,7 @@ router.get("/:mainSite/:subSite/export-excel", async (req, res) => {
 });
 router.get('/:mainSite/:subSite', async (req, res) => {
     const { mainSite, subSite } = req.params;
-    
+
     try {
         const section = await Section.findOne({ mainSite, subSite });
         if (section) {
